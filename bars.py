@@ -9,19 +9,19 @@ def load_data(filepath):
     return parsed_json
 
 
-def get_biggest_bar(data):
+def get_biggest_bar(bars_dict):
     return reduce(lambda x, y: x if max([x['properties']['Attributes']['SeatsCount'],
                                          y['properties']['Attributes']['SeatsCount']])
-                  == x['properties']['Attributes']['SeatsCount'] else y, data)
+                  == x['properties']['Attributes']['SeatsCount'] else y, bars_dict)
 
 
-def get_smallest_bar(data):
+def get_smallest_bar(bars_dict):
     return reduce(lambda x, y: x if min([x['properties']['Attributes']['SeatsCount'],
                                          y['properties']['Attributes']['SeatsCount']])
-                  == x['properties']['Attributes']['SeatsCount'] else y, data)
+                  == x['properties']['Attributes']['SeatsCount'] else y, bars_dict)
 
 
-def get_closest_bar(data, longitude, latitude):
+def get_closest_bar(bars_dict, longitude, latitude):
     longitude = float(longitude)
     latitude = float(latitude)
     return reduce(lambda x, y: x if min([calc_distance(x['geometry']['coordinates'][1],
@@ -35,7 +35,7 @@ def get_closest_bar(data, longitude, latitude):
                   == calc_distance(x['geometry']['coordinates'][1],
                                    x['geometry']['coordinates'][0],
                                    longitude,
-                                   latitude) else y, data)
+                                   latitude) else y, bars_dict)
 
 def calc_distance(x1, y1, x2, y2):
     return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
