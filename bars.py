@@ -22,6 +22,8 @@ def get_smallest_bar(data):
 
 
 def get_closest_bar(data, longitude, latitude):
+    longitude = float(longitude)
+    latitude = float(latitude)
     return reduce(lambda x, y: x if min([calc_distance(x['geometry']['coordinates'][1],
                                                        x['geometry']['coordinates'][0],
                                                        longitude,
@@ -40,14 +42,17 @@ def calc_distance(x1, y1, x2, y2):
 
 
 if __name__ == '__main__':
-    data = load_data('bars.json')
-    biggest_bar = get_biggest_bar(data['features'])
-    print(biggest_bar)
-    smallest_bar = get_smallest_bar(data['features'])
-    print(smallest_bar)
+    bars_dict = load_data('bars.json')
+    biggest_bar = get_biggest_bar(bars_dict['features'])
+    print('Самый вместительный бар: {}, {}'.format(biggest_bar['properties']['Attributes']['Name'],
+                                                   biggest_bar['properties']['Attributes']['Address']))
+    smallest_bar = get_smallest_bar(bars_dict['features'])
+    print('Самый тесный бар: {}, {}'.format(smallest_bar['properties']['Attributes']['Name'],
+                                            smallest_bar['properties']['Attributes']['Address']))
     longitude = input('Please input longitude: ')
     # longitude = 55.820875
     latitude = input('Please input latitude: ')
     # latitude = 37.604430
-    closest_bar = get_closest_bar(data['features'], longitude, latitude)
-    print(closest_bar)
+    closest_bar = get_closest_bar(bars_dict['features'], longitude, latitude)
+    print('Ближайший бар: {}, {}'.format(closest_bar['properties']['Attributes']['Name'],
+                                         closest_bar['properties']['Attributes']['Address']))
