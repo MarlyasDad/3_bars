@@ -1,58 +1,77 @@
 import json
 import math
-from functools import reduce
 
 
 def load_data(filepath):
-    with open(filepath, 'r', encoding='utf-8') as file:
-        parsed_json = json.loads(file.read())
-    return parsed_json
+    try:
+        with open(filepath, 'r', encoding='utf-8') as bars_file:
+            parsed_json = json.loads(bars_file.read())
+        return parsed_json['features']
+    except IOError:
+        raise IOError('Could not open file bars.json!')
+    except ValueError:
+        raise ValueError('Wrong JSON!')
 
 
 def get_biggest_bar(bars_dict):
-    return reduce(lambda x, y: x if max([x['properties']['Attributes']['SeatsCount'],
-                                         y['properties']['Attributes']['SeatsCount']])
-                  == x['properties']['Attributes']['SeatsCount'] else y, bars_dict)
+    return max(
+        bars_dict,
+        key=lambda x: x['properties']['Attributes']['SeatsCount']
+    )
 
 
 def get_smallest_bar(bars_dict):
-    return reduce(lambda x, y: x if min([x['properties']['Attributes']['SeatsCount'],
-                                         y['properties']['Attributes']['SeatsCount']])
-                  == x['properties']['Attributes']['SeatsCount'] else y, bars_dict)
+    return min(
+        bars_dict,
+        key=lambda x: x['properties']['Attributes']['SeatsCount']
+    )
 
 
 def get_closest_bar(bars_dict, longitude, latitude):
-    longitude = float(longitude)
-    latitude = float(latitude)
-    return reduce(lambda x, y: x if min([calc_distance(x['geometry']['coordinates'][1],
-                                                       x['geometry']['coordinates'][0],
-                                                       longitude,
-                                                       latitude),
-                                         calc_distance(y['geometry']['coordinates'][1],
-                                                       y['geometry']['coordinates'][0],
-                                                       longitude,
-                                                       latitude)])
-                  == calc_distance(x['geometry']['coordinates'][1],
-                                   x['geometry']['coordinates'][0],
-                                   longitude,
-                                   latitude) else y, bars_dict)
+    try:
+        longitude = float(longitude)
+        latitude = float(latitude)
+    except ValueError:
+        raise ValueError('Wrong coordinates!')
+    return min(bars_dict, key=lambda x: calc_distance(
+        x['geometry']['coordinates'][1],
+        x['geometry']['coordinates'][0],
+        longitude,
+        latitude)
+    )
 
 def calc_distance(x1, y1, x2, y2):
     return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
 
+def display_bar_info(bar_dict):
+    return '{}, {}'.format(
+        bar_dict['properties']['Attributes']['Name'],
+        bar_dict['properties']['Attributes']['Address']
+    )
+
+
 if __name__ == '__main__':
-    bars_dict = load_data('bars.json')
-    biggest_bar = get_biggest_bar(bars_dict['features'])
-    print('Самый вместительный бар: {}, {}'.format(biggest_bar['properties']['Attributes']['Name'],
-                                                   biggest_bar['properties']['Attributes']['Address']))
-    smallest_bar = get_smallest_bar(bars_dict['features'])
-    print('Самый тесный бар: {}, {}'.format(smallest_bar['properties']['Attributes']['Name'],
-                                            smallest_bar['properties']['Attributes']['Address']))
-    longitude = input('Please input longitude: ')
-    # longitude = 55.820875
-    latitude = input('Please input latitude: ')
-    # latitude = 37.604430
-    closest_bar = get_closest_bar(bars_dict['features'], longitude, latitude)
-    print('Ближайший бар: {}, {}'.format(closest_bar['properties']['Attributes']['Name'],
-                                         closest_bar['properties']['Attributes']['Address']))
+    try:
+        bars_dict = load_data('bars.json')
+
+        biggest_bar = get_biggest_bar(bars_dict)
+        print('Самый вместительный бар: {}'.format(
+            display_bar_info(biggest_bar))
+        )
+
+        smallest_bar = get_smallest_bar(bars_dict)
+        print('Самый тесный бар: {}'.format(
+            display_bar_info(smallest_bar))
+        )
+
+        longitude = input('Please input longitude: ')
+        latitude = input('Please input latitude: ')
+        closest_bar = get_closest_bar(bars_dict, longitude, latitude)
+        print('Ближайший бар: {}'.format(
+            display_bar_info(closest_bar))
+        )
+    except ValueError as exc_text:
+        print(exc_text)
+    except IOError:
+        print("Could not open file!")
